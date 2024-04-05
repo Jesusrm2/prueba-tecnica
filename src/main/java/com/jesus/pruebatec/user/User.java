@@ -1,5 +1,6 @@
 package com.jesus.pruebatec.user;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,6 +44,8 @@ public class User implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     Role role;
+    @Nullable
+    int numeroIntento;
 
 
     @Override

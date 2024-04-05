@@ -31,6 +31,66 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
+    /*
+    @Transactional
+public AuthResponse login(LoginRequest request) {
+    User user = userRepository.findByUsername(request.getUsername()).orElseThrow();
+
+    // Verificar si el usuario tiene una sesión activa
+    if ("A".equals(user.getSesionStatus())) {
+        return AuthResponse.builder()
+                .message("Ya tiene una sesión activa")
+                .build();
+    }
+
+    // Verificar si la cuenta del usuario está bloqueada
+    if ("I".equals(user.getUserStatus())) {
+        return AuthResponse.builder()
+                .message("La cuenta está bloqueada")
+                .build();
+    }
+
+    // Verificar la contraseña
+    if (!request.getPassword().equals(user.getPassword())) {
+        // Incrementar el número de intentos fallidos
+        user.setIntentosFallidos(user.getIntentosFallidos() + 1);
+        if (user.getIntentosFallidos() >= 3) {
+            // Bloquear la cuenta si excede los 3 intentos fallidos
+            user.setUserStatus("I");
+            userRepository.save(user);
+            return AuthResponse.builder()
+                    .message("Ha excedido el número de intentos permitidos. La cuenta ha sido bloqueada.")
+                    .build();
+        }
+        userRepository.save(user);
+        return AuthResponse.builder()
+                .message("Contraseña incorrecta. Intentos restantes: " + (3 - user.getIntentosFallidos()))
+                .build();
+    }
+
+    // Restablecer el contador de intentos fallidos si la contraseña es correcta
+    user.setIntentosFallidos(0);
+    userRepository.save(user);
+
+    // Resto del código para el inicio de sesión exitoso
+    userRepository.updateUser(user.getIdUser(), "A");
+    Session session = Session.builder()
+            .fechaIngreso(LocalDateTime.now())
+            .fechaCierrre(null)
+            .userId(user.getIdUser())
+            .build();
+    System.out.println(session);
+    sessionRespository.save(session);
+    authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+    UserDetails user2 = userRepository.findByUsername(request.getUsername()).orElseThrow();
+    String token=jwtService.getToken(user2);
+    return AuthResponse.builder()
+            .token(token)
+            .data(user.getIdUser().toString())
+            .build();
+}
+
+     */
     @Transactional
     public AuthResponse login(LoginRequest request) {
         User userSesion = userRepository.findByUsername(request.getUsername()).orElseThrow();
@@ -39,6 +99,25 @@ public class AuthService {
                     .message("Ya tiene una sesión activa")
                     .build();
         }
+        if ("I".equals(userSesion.getUserStatus())){
+            return AuthResponse.builder()
+                    .message("Cuenta esta bloqueada")
+                    .build();
+        }
+        if (!passwordEncoder.matches(request.getPassword(), userSesion.getPassword())) {
+            userSesion.setNumeroIntento(userSesion.getNumeroIntento() + 1);
+            if (userSesion.getNumeroIntento() >= 4) {
+                userSesion.setUserStatus("I");
+                userRepository.save(userSesion);
+                userSesion.setNumeroIntento(0);
+                return AuthResponse.builder()
+                        .message("Ha excedido el número de intentos permitidos. La cuenta ha sido bloqueada.")
+                        .build();
+            }
+            return AuthResponse.builder()
+                    .message("Contraseña incorrecta. Intentos restantes: " + (4 - userSesion.getNumeroIntento() ))
+                    .build();
+            }
         User user = userRepository.findByUsername(request.getUsername()).orElseThrow();
         userRepository.updateUser(user.getIdUser(), "A");
 

@@ -12,10 +12,12 @@ public interface UserRepository extends JpaRepository<User,Integer> {
     Optional<User> findByIdUser(Integer username);
     Optional<User> findByEmail(String email);
 
-
+    Optional<User> findByUsernameOrEmail(String username, String email);
     @Modifying
     @Query("update User u set u.sesionStatus=:sesionStatus where u.idUser = :idUser")
     void updateUser(
             @Param("idUser") Integer id,
             @Param("sesionStatus") String sesionStatus);
+    @Query(" select u.username, u.sesionStatus, u.userStatus, s.fechaIngreso, s.fechaCierrre from User u INNER JOIN Session s on u.idUser = s.userId")
+    void getUserSession();
 }

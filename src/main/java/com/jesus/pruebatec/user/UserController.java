@@ -23,6 +23,7 @@ public class UserController {
         return ResponseEntity.ok(userDTO);
     }
 
+
     @PutMapping()
     @PreAuthorize("permitAll()")
     public ResponseEntity<UserResponse> updateUser(@RequestBody UserRequest userRequest) {
